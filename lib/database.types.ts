@@ -6,6 +6,13 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+// Per-set tracking data structure
+export interface SetData {
+  set: number
+  weight: number | null
+  reps: number
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -96,6 +103,8 @@ export interface Database {
           note: string | null
           completed: boolean
           created_at: string
+          set_data: SetData[] | null
+          swapped_from_exercise_id: string | null
         }
         Insert: {
           id?: string
@@ -108,6 +117,8 @@ export interface Database {
           note?: string | null
           completed?: boolean
           created_at?: string
+          set_data?: SetData[] | null
+          swapped_from_exercise_id?: string | null
         }
         Update: {
           id?: string
@@ -120,6 +131,8 @@ export interface Database {
           note?: string | null
           completed?: boolean
           created_at?: string
+          set_data?: SetData[] | null
+          swapped_from_exercise_id?: string | null
         }
       }
     }
