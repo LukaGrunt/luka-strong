@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #F97316;
+  --foundation: #0A0A0A;
+  --accent: #B91C1C;
+  --surface: #27272A;
+  --muted: #71717A;
+  --text-white: #FAFAFA;
+}
+
+body {
+  background-color: var(--foundation);
+  color: var(--text-white);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
