@@ -7,6 +7,8 @@ import { saveEntriesLocally } from '@/lib/session-storage'
 import { queueMutation, isOnline, processQueue } from '@/lib/offline-queue'
 import type { Database, SetData } from '@/lib/database.types'
 import ExerciseSwapper from './ExerciseSwapper'
+import Button from './ui/Button'
+import FullscreenTimer from './FullscreenTimer'
 
 type Exercise = Database['public']['Tables']['exercises']['Row']
 type SessionEntry = Database['public']['Tables']['session_entries']['Row']
@@ -59,6 +61,13 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
   const [timerIntervals, setTimerIntervals] = useState<Map<string, NodeJS.Timeout>>(new Map())
   const [restTimer, setRestTimer] = useState<number | null>(null)
   const [restInterval, setRestInterval] = useState<NodeJS.Timeout | null>(null)
+  const [showRestTimer, setShowRestTimer] = useState(false)
+  const [fullscreenTimerState, setFullscreenTimerState] = useState<{
+    isOpen: boolean
+    exerciseId: string
+    exerciseName: string
+    totalSeconds: number
+  } | null>(null)
 
   // Initialize entries with prefill logic
   useEffect(() => {
@@ -375,6 +384,50 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
     setRestTimer(null)
   }, [restInterval])
 
+  const openFullscreenTimer = useCallback((exerciseId: string, exerciseName: string, seconds: number) => {
+    // Stop any existing timer for this exercise
+    stopTimer(exerciseId)
+
+    // Open fullscreen with initial state
+    setFullscreenTimerState({
+      isOpen: true,
+      exerciseId,
+      exerciseName,
+      totalSeconds: seconds,
+    })
+
+    // Start the timer
+    setActiveTimers(prev => new Map(prev).set(exerciseId, seconds))
+
+    const interval = setInterval(() => {
+      setActiveTimers(prev => {
+        const newMap = new Map(prev)
+        const current = newMap.get(exerciseId)
+        if (current === undefined || current <= 1) {
+          clearInterval(interval)
+          setTimerIntervals(prev => {
+            const newIntervals = new Map(prev)
+            newIntervals.delete(exerciseId)
+            return newIntervals
+          })
+          newMap.delete(exerciseId)
+          return newMap
+        }
+        newMap.set(exerciseId, current - 1)
+        return newMap
+      })
+    }, 1000)
+
+    setTimerIntervals(prev => new Map(prev).set(exerciseId, interval))
+  }, [stopTimer])
+
+  const closeFullscreenTimer = useCallback(() => {
+    if (fullscreenTimerState) {
+      stopTimer(fullscreenTimerState.exerciseId)
+    }
+    setFullscreenTimerState(null)
+  }, [fullscreenTimerState, stopTimer])
+
   const handleFinish = async () => {
     setIsSaving(true)
 
@@ -486,9 +539,11 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
         </div>
 
         {/* Progress bar */}
-        <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-surface rounded-full overflow-hidden shadow-glass-inset">
           <div
-            className="h-full bg-primary transition-all duration-300"
+            className={`h-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out ${
+              progressPercent > 0 ? 'shadow-glow-primary' : ''
+            } ${progressPercent >= 90 ? 'animate-pulse-subtle' : ''}`}
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -507,7 +562,9 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
           return (
             <div
               key={exercise.id}
-              className="bg-surface border border-primary/10 rounded-lg p-4"
+              className={`glass rounded-lg p-6 transition-smooth ${
+                entry.completed ? 'shadow-glow-primary border-primary/30' : 'border-primary/10'
+              }`}
             >
               {/* Exercise name, swap button, and completion */}
               <div className="flex items-start justify-between mb-3 gap-2">
@@ -530,7 +587,19 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
                   </button>
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  {/* Timer button for time-based exercises */}
+                  {/* Note button */}
+                  <button
+                    onClick={() => updateEntry(exercise.id, { showNote: !entry.showNote })}
+                    className={`px-3 py-2 min-h-[48px] min-w-[48px] rounded-lg text-base transition-smooth btn-press ${
+                      entry.showNote
+                        ? 'glass-primary text-textWhite'
+                        : 'glass border-muted/30 hover:border-primary/50 text-muted hover:text-textWhite'
+                    }`}
+                    title={entry.showNote ? 'Hide note' : 'Add note'}
+                  >
+                    📝
+                  </button>
+                  {/* Timer button for time-based exercises - Opens fullscreen */}
                   {displayExercise.unit === 'sec' && (() => {
                     const timerActive = activeTimers.has(exercise.id)
                     const timeRemaining = activeTimers.get(exercise.id)
@@ -538,11 +607,11 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
 
                     return (
                       <button
-                        onClick={() => timerActive ? stopTimer(exercise.id) : startTimer(exercise.id, seconds)}
-                        className={`px-4 py-2 min-h-[48px] min-w-[80px] rounded-lg text-base font-bold transition-colors ${
+                        onClick={() => openFullscreenTimer(exercise.id, displayExercise.name, seconds)}
+                        className={`glass-primary px-4 py-2 min-h-[48px] min-w-[80px] rounded-lg text-base font-bold transition-smooth ${
                           timerActive
-                            ? 'bg-accent text-foundation shadow-lg'
-                            : 'bg-surface border-2 border-primary text-primary hover:bg-primary/10'
+                            ? 'shadow-glow-primary animate-timer-pulse'
+                            : 'hover:shadow-glow-primary'
                         }`}
                       >
                         {timerActive ? `${timeRemaining}s` : '⏱️'}
@@ -551,10 +620,10 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
                   })()}
                   <button
                     onClick={() => updateEntry(exercise.id, { completed: !entry.completed })}
-                    className={`px-4 py-2 min-h-[48px] min-w-[100px] rounded-lg text-base font-bold transition-colors ${
+                    className={`px-4 py-2 min-h-[48px] min-w-[100px] rounded-lg text-base font-bold transition-smooth btn-press ${
                       entry.completed
-                        ? 'bg-primary text-foundation shadow-lg'
-                        : 'bg-surface border-2 border-muted text-muted'
+                        ? 'glass-primary shadow-glow-primary text-textWhite'
+                        : 'glass border-muted/30 hover:border-primary/50 text-muted hover:text-textWhite'
                     }`}
                   >
                     {entry.completed ? '✓ Done' : 'Mark done'}
@@ -681,23 +750,17 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
                 </button>
               )}
 
-              {/* Note toggle and input */}
-              {!entry.showNote ? (
-                <button
-                  onClick={() => updateEntry(exercise.id, { showNote: true })}
-                  className="text-muted hover:text-textWhite text-sm mt-2"
-                >
-                  + Add note
-                </button>
-              ) : (
-                <div className="mt-2">
-                  <label className="block text-muted text-xs mb-1">Note</label>
+              {/* Note input (shown when note button is active) */}
+              {entry.showNote && (
+                <div className="mt-3">
+                  <label className="block text-muted text-xs mb-1 font-medium">Note</label>
                   <input
                     type="text"
                     value={entry.note}
                     onChange={(e) => updateEntry(exercise.id, { note: e.target.value })}
                     placeholder="Form, feeling, etc."
-                    className="w-full bg-foundation border border-muted/30 rounded px-3 py-2 text-textWhite text-sm focus:outline-none focus:border-primary"
+                    className="w-full glass rounded-lg px-4 py-3 text-textWhite text-base focus:outline-none focus:border-primary focus:shadow-glow-primary transition-smooth"
+                    autoFocus
                   />
                 </div>
               )}
@@ -706,59 +769,88 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
         })}
 
         {/* Add Exercise Button */}
-        <button
+        <Button
+          variant="secondary"
+          size="lg"
+          fullWidth
           onClick={() => setShowAddExercise(true)}
-          className="w-full bg-surface border-2 border-dashed border-primary/30 hover:border-primary/50 text-primary py-4 rounded-lg text-base font-medium transition-colors flex items-center justify-center gap-2"
+          className="border-2 border-dashed border-primary/30 hover:border-primary/50"
         >
           <span className="text-xl">+</span>
           Add Exercise
-        </button>
+        </Button>
       </div>
 
       {/* Fixed bottom section */}
       <div className="fixed bottom-0 left-0 right-0 bg-foundation border-t border-primary/20 p-4 space-y-3">
-        {/* Rest Timer */}
-        <div className="bg-surface rounded-lg p-3 border border-primary/20">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-muted text-sm font-medium">Rest Timer</span>
-            {restTimer !== null && (
-              <button
-                onClick={stopRestTimer}
-                className="text-accent hover:text-accent/80 text-xs font-bold"
-              >
-                Stop
-              </button>
-            )}
-          </div>
-
-          {restTimer !== null ? (
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">
-                {Math.floor(restTimer / 60)}:{(restTimer % 60).toString().padStart(2, '0')}
+        {/* Rest Timer - Collapsible with Glass Morphism */}
+        {showRestTimer ? (
+          <div className="glass rounded-lg p-3 animate-slide-down">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-textWhite text-sm font-bold">Rest Timer</span>
+              <div className="flex items-center gap-2">
+                {restTimer !== null && (
+                  <button
+                    onClick={stopRestTimer}
+                    className="glass-primary px-3 py-1 rounded text-xs font-bold transition-smooth hover:shadow-glow-accent"
+                  >
+                    Stop
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowRestTimer(false)}
+                  className="glass hover:glass-primary px-2 py-1 rounded text-xs font-bold transition-smooth"
+                >
+                  ✕
+                </button>
               </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-6 gap-2">
-              {[30, 60, 90, 120, 180, 240].map((seconds) => (
-                <button
-                  key={seconds}
-                  onClick={() => startRestTimer(seconds)}
-                  className="px-3 py-2 bg-foundation border border-primary/30 hover:border-primary text-primary rounded text-sm font-medium transition-colors"
-                >
-                  {seconds < 60 ? `${seconds}s` : `${seconds / 60}m`}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
 
-        <button
+            {restTimer !== null ? (
+              <div className="text-center animate-scale-in">
+                <div className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2 animate-pulse-subtle">
+                  {Math.floor(restTimer / 60)}:{(restTimer % 60).toString().padStart(2, '0')}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                {[30, 60, 90, 120, 180, 240].map((seconds) => (
+                  <button
+                    key={seconds}
+                    onClick={() => startRestTimer(seconds)}
+                    className="glass-primary px-3 py-2 rounded text-sm font-medium transition-smooth hover:shadow-glow-primary btn-press"
+                  >
+                    {seconds < 60 ? `${seconds}s` : `${seconds / 60}m`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowRestTimer(true)}
+            className="w-full glass-primary py-2 rounded-lg text-sm font-medium transition-smooth hover:shadow-glow-primary flex items-center justify-center gap-2"
+          >
+            <span className="text-lg">⏱️</span>
+            Rest Timer
+            {restTimer !== null && (
+              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-bold animate-pulse-subtle">
+                {Math.floor(restTimer / 60)}:{(restTimer % 60).toString().padStart(2, '0')}
+              </span>
+            )}
+          </button>
+        )}
+
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
           onClick={handleFinish}
           disabled={isSaving}
-          className="w-full bg-primary hover:bg-primary/90 active:bg-primary/80 text-foundation font-bold py-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          loading={isSaving}
         >
-          {isSaving ? 'Saving...' : 'Finish Workout'}
-        </button>
+          {!isSaving && 'Finish Workout'}
+        </Button>
       </div>
 
       {/* Exercise Swapper Modal */}
@@ -786,6 +878,17 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
         currentExerciseId=""
         onSwap={handleAddExercise}
       />
+
+      {/* Fullscreen Immersive Timer */}
+      {fullscreenTimerState && (
+        <FullscreenTimer
+          isOpen={fullscreenTimerState.isOpen}
+          seconds={activeTimers.get(fullscreenTimerState.exerciseId) || 0}
+          totalSeconds={fullscreenTimerState.totalSeconds}
+          exerciseName={fullscreenTimerState.exerciseName}
+          onClose={closeFullscreenTimer}
+        />
+      )}
     </div>
   )
 }

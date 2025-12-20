@@ -42,7 +42,7 @@ export default function WorkoutPicker({ workoutTypes, recentSessions, createSess
             key={type.id}
             onClick={() => handleWorkoutSelect(type.id)}
             disabled={isPending}
-            className="w-full bg-surface hover:bg-surface/80 active:bg-primary/20 border-2 border-primary/20 hover:border-primary/40 rounded-lg p-6 text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full glass-primary rounded-lg p-6 text-left transition-smooth hover:shadow-glow-primary disabled:opacity-50 disabled:cursor-not-allowed btn-press animate-scale-in shadow-glass-inset"
           >
             <h2 className="text-2xl font-bold text-textWhite">{type.name}</h2>
             <p className="text-muted text-sm mt-1">Tap to start session</p>
@@ -69,7 +69,7 @@ export default function WorkoutPicker({ workoutTypes, recentSessions, createSess
                 <Link
                   key={session.id}
                   href={`/history/${session.id}`}
-                  className="block bg-surface/50 hover:bg-surface border border-primary/10 rounded p-4 transition-colors"
+                  className="block glass rounded-lg p-4 glass-hover"
                 >
                   <div className="flex justify-between items-center">
                     <span className="text-textWhite font-medium">
@@ -83,7 +83,7 @@ export default function WorkoutPicker({ workoutTypes, recentSessions, createSess
           </div>
           <Link
             href="/history"
-            className="block text-center text-primary hover:text-primary/80 mt-4 text-sm font-medium"
+            className="block text-center text-primary hover:text-primary/80 mt-4 text-sm font-medium transition-smooth"
           >
             View all history →
           </Link>

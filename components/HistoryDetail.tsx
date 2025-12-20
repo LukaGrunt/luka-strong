@@ -37,7 +37,7 @@ export default function HistoryDetail({ session, entries, stravaText }: Props) {
     <div className="min-h-screen bg-foundation p-4 pb-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <header className="mb-8">
+        <header className="mb-8 animate-fade-in">
           <h1 className="text-2xl font-bold text-textWhite mb-2">
             {session.workout_types?.name || 'Workout'}
           </h1>
@@ -59,7 +59,7 @@ export default function HistoryDetail({ session, entries, stravaText }: Props) {
         </header>
 
         {/* Exercises performed */}
-        <div className="bg-surface border border-primary/20 rounded-lg p-6 mb-6">
+        <div className="glass rounded-lg p-6 mb-6 animate-scale-in shadow-glass">
           <h2 className="text-lg font-bold text-textWhite mb-4">Exercises</h2>
           <div className="space-y-4">
             {completedEntries.map((entry) => {
@@ -100,14 +100,14 @@ export default function HistoryDetail({ session, entries, stravaText }: Props) {
         </div>
 
         {/* Strava Copy */}
-        <div className="bg-surface border border-primary/20 rounded-lg p-6 mb-6">
+        <div className="glass rounded-lg p-6 mb-6 animate-scale-in shadow-glass" style={{ animationDelay: '100ms' }}>
           <h2 className="text-lg font-bold text-textWhite mb-4">Strava Copy</h2>
-          <div className="bg-foundation rounded p-4 mb-4 font-mono text-sm text-textWhite whitespace-pre-wrap border border-muted/20">
+          <div className="bg-foundation/50 rounded p-4 mb-4 font-mono text-sm text-textWhite whitespace-pre-wrap border border-muted/20 backdrop-blur-sm">
             {stravaText}
           </div>
           <button
             onClick={handleCopy}
-            className="w-full bg-primary hover:bg-primary/90 active:bg-primary/80 text-foundation font-bold py-3 rounded-lg transition-colors"
+            className="w-full glass-primary py-3 min-h-[48px] rounded-lg font-bold text-textWhite transition-smooth hover:shadow-glow-primary btn-press shadow-glass-inset"
           >
             {copied ? '✓ Copied!' : 'Copy to Clipboard'}
           </button>
@@ -117,13 +117,13 @@ export default function HistoryDetail({ session, entries, stravaText }: Props) {
         <div className="space-y-3">
           <Link
             href="/history"
-            className="block w-full bg-surface hover:bg-surface/80 border border-primary/20 text-textWhite text-center font-medium py-3 rounded-lg transition-colors"
+            className="block w-full glass py-3 min-h-[48px] rounded-lg text-textWhite text-center font-medium transition-smooth hover:shadow-glow-primary btn-press flex items-center justify-center"
           >
             Back to History
           </Link>
           <Link
             href="/workout"
-            className="block w-full text-center text-primary hover:text-primary/80 py-2"
+            className="block w-full text-center text-primary hover:text-primary/80 py-2 transition-smooth"
           >
             Start New Workout
           </Link>

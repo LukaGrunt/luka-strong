@@ -43,8 +43,10 @@ export default function FinishScreen({ session, stravaText, progressions }: Prop
     <div className="min-h-screen bg-foundation p-4 pb-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-textWhite mb-2">Workout Complete!</h1>
+        <header className="mb-8 animate-fade-in">
+          <h1 className="text-3xl font-bold text-textWhite mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Workout Complete!
+          </h1>
           <p className="text-muted">
             {session.workout_types?.name || 'Workout'} •{' '}
             {new Date(session.started_at).toLocaleDateString('en-US', {
@@ -55,16 +57,16 @@ export default function FinishScreen({ session, stravaText, progressions }: Prop
         </header>
 
         {/* Strava Copy Section */}
-        <div className="bg-surface border border-primary/20 rounded-lg p-6 mb-6">
+        <div className="glass rounded-lg p-6 mb-6 animate-scale-in shadow-glass">
           <h2 className="text-xl font-bold text-textWhite mb-4">Strava Copy</h2>
 
-          <div className="bg-foundation rounded p-4 mb-4 font-mono text-sm text-textWhite whitespace-pre-wrap border border-muted/20">
+          <div className="bg-foundation/50 rounded p-4 mb-4 font-mono text-sm text-textWhite whitespace-pre-wrap border border-muted/20 backdrop-blur-sm">
             {stravaText}
           </div>
 
           <button
             onClick={handleCopy}
-            className="w-full bg-primary hover:bg-primary/90 active:bg-primary/80 text-foundation font-bold py-3 rounded-lg transition-colors mb-2"
+            className="w-full glass-primary py-3 min-h-[48px] rounded-lg font-bold text-textWhite transition-smooth hover:shadow-glow-primary btn-press shadow-glass-inset mb-2"
           >
             {copied ? '✓ Copied!' : 'Copy to Clipboard'}
           </button>
@@ -84,16 +86,16 @@ export default function FinishScreen({ session, stravaText, progressions }: Prop
 
         {/* Next Time Targets */}
         {progressions.length > 0 && (
-          <div className="bg-surface border border-primary/20 rounded-lg p-6 mb-6">
+          <div className="glass rounded-lg p-6 mb-6 animate-scale-in shadow-glass" style={{ animationDelay: '100ms' }}>
             <h2 className="text-xl font-bold text-textWhite mb-4">Next Time Targets</h2>
             <div className="space-y-3">
               {progressions.map((prog, index) => (
                 <div
                   key={index}
-                  className={`p-3 rounded border ${
+                  className={`p-3 rounded transition-smooth ${
                     prog.isWarning
-                      ? 'bg-accent/10 border-accent/30'
-                      : 'bg-foundation border-muted/20'
+                      ? 'glass border-accent/30 hover:shadow-glow-accent'
+                      : 'glass border-primary/20 hover:shadow-glow-primary'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-1">
@@ -117,13 +119,13 @@ export default function FinishScreen({ session, stravaText, progressions }: Prop
         <div className="space-y-3">
           <Link
             href="/workout"
-            className="block w-full bg-surface hover:bg-surface/80 border-2 border-primary/20 text-textWhite text-center font-bold py-3 rounded-lg transition-colors"
+            className="block w-full glass-primary text-center font-bold py-3 min-h-[48px] rounded-lg transition-smooth hover:shadow-glow-primary btn-press shadow-glass-inset flex items-center justify-center"
           >
             Start New Workout
           </Link>
           <Link
             href={`/history/${session.id}`}
-            className="block w-full text-center text-primary hover:text-primary/80 py-2"
+            className="block w-full text-center text-primary hover:text-primary/80 py-2 transition-smooth"
           >
             View Full Details
           </Link>

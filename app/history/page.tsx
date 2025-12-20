@@ -29,9 +29,9 @@ export default async function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-foundation p-4">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-textWhite tracking-tight">LUKA FORGE</h1>
-        <p className="text-muted mt-1">Workout History</p>
+      <header className="mb-8 animate-fade-in">
+        <h1 className="text-3xl font-bold text-textWhite tracking-tight mb-1">LUKA FORGE</h1>
+        <p className="text-muted">Workout History</p>
       </header>
 
       <div className="max-w-2xl mx-auto">
@@ -40,7 +40,7 @@ export default async function HistoryPage() {
             <p className="text-muted">No workouts logged yet</p>
             <Link
               href="/workout"
-              className="inline-block mt-4 text-primary hover:text-primary/80"
+              className="inline-block mt-4 text-primary hover:text-primary/80 transition-smooth"
             >
               Start your first workout →
             </Link>
@@ -56,7 +56,7 @@ export default async function HistoryPage() {
                 <Link
                   key={session.id}
                   href={`/history/${session.id}`}
-                  className="block bg-surface hover:bg-surface/80 border border-primary/10 rounded-lg p-4 transition-colors"
+                  className="block glass rounded-lg p-4 glass-hover"
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -89,7 +89,7 @@ export default async function HistoryPage() {
 
         <Link
           href="/workout"
-          className="block text-center text-primary hover:text-primary/80 mt-8 font-medium"
+          className="block text-center text-primary hover:text-primary/80 mt-8 font-medium transition-smooth"
         >
           ← Back to workouts
         </Link>

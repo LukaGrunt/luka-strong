@@ -26,6 +26,7 @@ export default function ExerciseSwapper({
   const [customWeight, setCustomWeight] = useState<number>(20)
   const [customSets, setCustomSets] = useState<number>(3)
   const [customReps, setCustomReps] = useState<number>(10)
+  const [customIsTimer, setCustomIsTimer] = useState<boolean>(false)
 
   if (!isOpen) return null
 
@@ -53,8 +54,8 @@ export default function ExerciseSwapper({
       name: customName,
       sort_order: 999,
       is_main: false,
-      unit: 'kg',
-      default_weight: customWeight,
+      unit: customIsTimer ? 'sec' : 'kg',
+      default_weight: customIsTimer ? null : customWeight,
       default_sets: customSets,
       default_reps: customReps,
       show_by_default: false,
@@ -67,19 +68,20 @@ export default function ExerciseSwapper({
     setCustomWeight(20)
     setCustomSets(3)
     setCustomReps(10)
+    setCustomIsTimer(false)
     onClose()
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center animate-fade-in">
+      {/* Backdrop with blur */}
       <div
-        className="absolute inset-0 bg-black/80"
+        className="absolute inset-0 bg-foundation/90 backdrop-blur-lg"
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div className="relative w-full max-w-lg bg-surface rounded-t-2xl sm:rounded-2xl max-h-[80vh] flex flex-col">
+      {/* Modal with glass morphism */}
+      <div className="relative w-full max-w-lg glass-strong rounded-t-2xl sm:rounded-2xl max-h-[80vh] flex flex-col animate-slide-up shadow-glass">
         {/* Header */}
         <div className="p-4 border-b border-muted/30">
           <div className="flex items-center justify-between mb-3">
@@ -95,13 +97,13 @@ export default function ExerciseSwapper({
             </button>
           </div>
 
-          {/* Search */}
+          {/* Search with glass styling */}
           <input
             type="text"
             placeholder="Search exercises..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 bg-foundation border-2 border-muted/30 rounded-lg text-textWhite text-lg placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
+            className="w-full px-4 py-3 glass rounded-lg text-textWhite text-lg placeholder:text-muted focus:outline-none focus:border-primary focus:shadow-glow-primary transition-smooth"
           />
         </div>
 
@@ -111,46 +113,68 @@ export default function ExerciseSwapper({
             // Custom Exercise Form
             <div className="space-y-4">
               <div>
-                <label className="block text-muted text-sm font-medium mb-2">Exercise Name</label>
+                <label className="block text-textWhite text-sm font-medium mb-2">Exercise Name</label>
                 <input
                   type="text"
-                  placeholder="e.g., Cable Crossover"
+                  placeholder="e.g., Cable Crossover or Plank"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
-                  className="w-full px-4 py-3 bg-foundation border-2 border-muted/30 rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary"
+                  className="w-full px-4 py-3 glass rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary focus:shadow-glow-primary transition-smooth"
                   autoFocus
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-muted text-sm font-medium mb-2">Weight (kg)</label>
-                  <input
-                    type="number"
-                    step="0.25"
-                    value={customWeight}
-                    onChange={(e) => setCustomWeight(parseFloat(e.target.value) || 0)}
-                    className="w-full px-4 py-3 bg-foundation border-2 border-muted/30 rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary"
+              {/* Timer Toggle */}
+              <div className="flex items-center justify-between glass rounded-lg p-3">
+                <span className="text-textWhite text-sm font-medium">Timer-based exercise (e.g., Plank)</span>
+                <button
+                  type="button"
+                  onClick={() => setCustomIsTimer(!customIsTimer)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-smooth ${
+                    customIsTimer ? 'bg-primary' : 'glass border border-muted/30'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-textWhite transition-transform ${
+                      customIsTimer ? 'translate-x-6' : 'translate-x-1'
+                    }`}
                   />
-                </div>
+                </button>
+              </div>
+
+              <div className={`grid ${customIsTimer ? 'grid-cols-2' : 'grid-cols-3'} gap-3`}>
+                {!customIsTimer && (
+                  <div>
+                    <label className="block text-textWhite text-sm font-medium mb-2">Weight (kg)</label>
+                    <input
+                      type="number"
+                      step="0.25"
+                      value={customWeight}
+                      onChange={(e) => setCustomWeight(parseFloat(e.target.value) || 0)}
+                      className="w-full px-4 py-3 glass rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary focus:shadow-glow-primary transition-smooth"
+                    />
+                  </div>
+                )}
                 <div>
-                  <label className="block text-muted text-sm font-medium mb-2">Sets</label>
+                  <label className="block text-textWhite text-sm font-medium mb-2">Sets</label>
                   <input
                     type="number"
                     min="1"
                     value={customSets}
                     onChange={(e) => setCustomSets(parseInt(e.target.value) || 1)}
-                    className="w-full px-4 py-3 bg-foundation border-2 border-muted/30 rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary"
+                    className="w-full px-4 py-3 glass rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary focus:shadow-glow-primary transition-smooth"
                   />
                 </div>
                 <div>
-                  <label className="block text-muted text-sm font-medium mb-2">Reps</label>
+                  <label className="block text-textWhite text-sm font-medium mb-2">
+                    {customIsTimer ? 'Seconds' : 'Reps'}
+                  </label>
                   <input
                     type="number"
                     min="1"
                     value={customReps}
                     onChange={(e) => setCustomReps(parseInt(e.target.value) || 1)}
-                    className="w-full px-4 py-3 bg-foundation border-2 border-muted/30 rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary"
+                    className="w-full px-4 py-3 glass rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary focus:shadow-glow-primary transition-smooth"
                   />
                 </div>
               </div>
@@ -158,14 +182,14 @@ export default function ExerciseSwapper({
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => setShowCustomForm(false)}
-                  className="flex-1 px-4 py-3 bg-surface border-2 border-muted/30 text-muted rounded-lg font-medium hover:border-muted/50 transition-colors"
+                  className="flex-1 px-4 py-3 glass rounded-lg font-medium text-textWhite hover:shadow-glow-primary transition-smooth btn-press"
                 >
                   Back
                 </button>
                 <button
                   onClick={handleCustomSubmit}
                   disabled={!customName.trim()}
-                  className="flex-1 px-4 py-3 bg-primary text-foundation rounded-lg font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-3 glass-primary rounded-lg font-bold text-textWhite hover:shadow-glow-primary transition-smooth disabled:opacity-50 disabled:cursor-not-allowed btn-press"
                 >
                   Add Exercise
                 </button>
@@ -182,7 +206,7 @@ export default function ExerciseSwapper({
                     <button
                       key={exercise.id}
                       onClick={() => handleSelect(exercise)}
-                      className="w-full p-4 bg-foundation rounded-lg border-2 border-muted/30 hover:border-primary transition-colors text-left group"
+                      className="w-full p-4 glass rounded-lg glass-hover text-left group"
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <h3 className="font-bold text-textWhite group-hover:text-primary transition-colors">
@@ -211,7 +235,7 @@ export default function ExerciseSwapper({
               {/* Add Custom Exercise Button */}
               <button
                 onClick={() => setShowCustomForm(true)}
-                className="w-full mt-4 p-4 bg-surface border-2 border-dashed border-primary/30 hover:border-primary/50 text-primary rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                className="w-full mt-4 p-4 glass border-2 border-dashed border-primary/30 hover:border-primary/50 hover:shadow-glow-primary text-primary rounded-lg font-medium transition-smooth flex items-center justify-center gap-2 btn-press"
               >
                 <span className="text-xl">+</span>
                 Add Custom Exercise
