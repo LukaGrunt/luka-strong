@@ -55,6 +55,8 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
   const [offline, setOffline] = useState(!isOnline())
   const [exerciseIdToSwap, setExerciseIdToSwap] = useState<string | null>(null)
   const [showAddExercise, setShowAddExercise] = useState(false)
+  const [activeTimers, setActiveTimers] = useState<Map<string, number>>(new Map())
+  const [timerIntervals, setTimerIntervals] = useState<Map<string, NodeJS.Timeout>>(new Map())
 
   // Initialize entries with prefill logic
   useEffect(() => {
@@ -279,6 +281,64 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
     setShowAddExercise(false)
   }, [])
 
+  const startTimer = useCallback((exerciseId: string, seconds: number) => {
+    // Clear existing timer for this exercise if any
+    const existingInterval = timerIntervals.get(exerciseId)
+    if (existingInterval) {
+      clearInterval(existingInterval)
+    }
+
+    // Set initial time
+    setActiveTimers(prev => new Map(prev).set(exerciseId, seconds))
+
+    // Start countdown
+    const interval = setInterval(() => {
+      setActiveTimers(prev => {
+        const newMap = new Map(prev)
+        const current = newMap.get(exerciseId)
+        if (current === undefined || current <= 1) {
+          // Timer finished
+          clearInterval(interval)
+          setTimerIntervals(prev => {
+            const newIntervals = new Map(prev)
+            newIntervals.delete(exerciseId)
+            return newIntervals
+          })
+          newMap.delete(exerciseId)
+          return newMap
+        }
+        newMap.set(exerciseId, current - 1)
+        return newMap
+      })
+    }, 1000)
+
+    setTimerIntervals(prev => new Map(prev).set(exerciseId, interval))
+  }, [timerIntervals])
+
+  const stopTimer = useCallback((exerciseId: string) => {
+    const interval = timerIntervals.get(exerciseId)
+    if (interval) {
+      clearInterval(interval)
+      setTimerIntervals(prev => {
+        const newMap = new Map(prev)
+        newMap.delete(exerciseId)
+        return newMap
+      })
+    }
+    setActiveTimers(prev => {
+      const newMap = new Map(prev)
+      newMap.delete(exerciseId)
+      return newMap
+    })
+  }, [timerIntervals])
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      timerIntervals.forEach(interval => clearInterval(interval))
+    }
+  }, [timerIntervals])
+
   const handleFinish = async () => {
     setIsSaving(true)
 
@@ -433,16 +493,37 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
                     Swap exercise
                   </button>
                 </div>
-                <button
-                  onClick={() => updateEntry(exercise.id, { completed: !entry.completed })}
-                  className={`px-4 py-2 min-h-[48px] min-w-[100px] rounded-lg text-base font-bold transition-colors shrink-0 ${
-                    entry.completed
-                      ? 'bg-primary text-foundation shadow-lg'
-                      : 'bg-surface border-2 border-muted text-muted'
-                  }`}
-                >
-                  {entry.completed ? '✓ Done' : 'Mark done'}
-                </button>
+                <div className="flex gap-2 shrink-0">
+                  {/* Timer button for time-based exercises */}
+                  {displayExercise.unit === 'sec' && (() => {
+                    const timerActive = activeTimers.has(exercise.id)
+                    const timeRemaining = activeTimers.get(exercise.id)
+                    const seconds = entry.reps
+
+                    return (
+                      <button
+                        onClick={() => timerActive ? stopTimer(exercise.id) : startTimer(exercise.id, seconds)}
+                        className={`px-4 py-2 min-h-[48px] min-w-[80px] rounded-lg text-base font-bold transition-colors ${
+                          timerActive
+                            ? 'bg-accent text-foundation shadow-lg'
+                            : 'bg-surface border-2 border-primary text-primary hover:bg-primary/10'
+                        }`}
+                      >
+                        {timerActive ? `${timeRemaining}s` : '⏱️'}
+                      </button>
+                    )
+                  })()}
+                  <button
+                    onClick={() => updateEntry(exercise.id, { completed: !entry.completed })}
+                    className={`px-4 py-2 min-h-[48px] min-w-[100px] rounded-lg text-base font-bold transition-colors ${
+                      entry.completed
+                        ? 'bg-primary text-foundation shadow-lg'
+                        : 'bg-surface border-2 border-muted text-muted'
+                    }`}
+                  >
+                    {entry.completed ? '✓ Done' : 'Mark done'}
+                  </button>
+                </div>
               </div>
 
               {/* Input fields */}
