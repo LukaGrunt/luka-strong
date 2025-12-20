@@ -16,6 +16,15 @@ const config: Config = {
         muted: '#71717A',
         textWhite: '#FAFAFA',
       },
+      minHeight: {
+        'touch': '48px',
+      },
+      minWidth: {
+        'touch': '48px',
+      },
+      fontSize: {
+        'input': ['1.125rem', { lineHeight: '1.5' }],
+      },
     },
   },
   plugins: [],
