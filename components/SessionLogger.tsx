@@ -54,10 +54,16 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
   const [isSaving, setIsSaving] = useState(false)
   const [offline, setOffline] = useState(!isOnline())
   const [exerciseIdToSwap, setExerciseIdToSwap] = useState<string | null>(null)
+  const [showAddExercise, setShowAddExercise] = useState(false)
 
   // Initialize entries with prefill logic
   useEffect(() => {
-    const initialEntries: EntryState[] = exercises.map((exercise) => {
+    // Only create entries for exercises that show by default OR were in existingEntries
+    const exercisesToShow = exercises.filter(ex =>
+      ex.show_by_default || existingEntries.some(e => e.exercise_id === ex.id)
+    )
+
+    const initialEntries: EntryState[] = exercisesToShow.map((exercise) => {
       // Check if there's an existing entry for this session
       const existing = existingEntries.find((e) => e.exercise_id === exercise.id)
       if (existing) {
@@ -246,6 +252,32 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
     },
     []
   )
+
+  const handleAddExercise = useCallback((newExercise: Exercise) => {
+    // Add a new entry for this exercise
+    const newEntry: EntryState = {
+      exerciseId: newExercise.id,
+      weight: newExercise.default_weight,
+      sets: newExercise.default_sets,
+      reps: newExercise.default_reps,
+      isAdvancedMode: false,
+      setData: [
+        {
+          set: 1,
+          weight: newExercise.default_weight,
+          reps: newExercise.default_reps,
+        },
+      ],
+      swappedFromExerciseId: null,
+      displayExerciseId: newExercise.id,
+      note: '',
+      completed: false,
+      showNote: false,
+    }
+
+    setEntries((prev) => [...prev, newEntry])
+    setShowAddExercise(false)
+  }, [])
 
   const handleFinish = async () => {
     setIsSaving(true)
@@ -555,6 +587,15 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
             </div>
           )
         })}
+
+        {/* Add Exercise Button */}
+        <button
+          onClick={() => setShowAddExercise(true)}
+          className="w-full bg-surface border-2 border-dashed border-primary/30 hover:border-primary/50 text-primary py-4 rounded-lg text-base font-medium transition-colors flex items-center justify-center gap-2"
+        >
+          <span className="text-xl">+</span>
+          Add Exercise
+        </button>
       </div>
 
       {/* Fixed bottom button */}
@@ -583,6 +624,15 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
             handleSwap(exerciseIdToSwap, newExercise)
           }
         }}
+      />
+
+      {/* Add Exercise Modal */}
+      <ExerciseSwapper
+        isOpen={showAddExercise}
+        onClose={() => setShowAddExercise(false)}
+        exercises={exercises.filter(ex => !entries.some(e => e.exerciseId === ex.id))}
+        currentExerciseId=""
+        onSwap={handleAddExercise}
       />
     </div>
   )

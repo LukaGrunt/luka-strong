@@ -44,6 +44,7 @@ export interface Database {
           default_weight: number | null
           default_sets: number
           default_reps: number
+          show_by_default: boolean
         }
         Insert: {
           id?: string
@@ -55,6 +56,7 @@ export interface Database {
           default_weight?: number | null
           default_sets: number
           default_reps: number
+          show_by_default?: boolean
         }
         Update: {
           id?: string
@@ -66,6 +68,7 @@ export interface Database {
           default_weight?: number | null
           default_sets?: number
           default_reps?: number
+          show_by_default?: boolean
         }
       }
       sessions: {

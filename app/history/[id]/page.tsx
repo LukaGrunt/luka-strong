@@ -25,7 +25,7 @@ async function getSessionEntries(sessionId: string) {
     .from('session_entries')
     .select(`
       *,
-      exercise:exercises(*)
+      exercise:exercises!session_entries_exercise_id_fkey(*)
     `)
     .eq('session_id', sessionId)
 

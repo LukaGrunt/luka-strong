@@ -20,6 +20,9 @@ async function getSession(sessionId: string) {
 }
 
 async function getExercises(workoutTypeId: string) {
+  // Fetch ALL exercises for this workout type
+  // SessionLogger will filter to show only show_by_default=true initially
+  // The rest are available via "+ Add Exercise" button
   const { data, error } = await supabase
     .from('exercises')
     .select('*')
