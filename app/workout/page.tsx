@@ -1,8 +1,13 @@
 import { supabase, DEFAULT_USER_ID } from '@/lib/supabase'
 import WorkoutPicker from '@/components/WorkoutPicker'
 import { redirect } from 'next/navigation'
+import type { Database } from '@/lib/database.types'
 
 export const dynamic = 'force-dynamic'
+
+type SessionWithWorkoutType = Database['public']['Tables']['sessions']['Row'] & {
+  workout_types?: { name: string } | null
+}
 
 async function getWorkoutTypes() {
   const { data, error } = await supabase
@@ -18,7 +23,7 @@ async function getWorkoutTypes() {
   return data
 }
 
-async function getRecentSessions() {
+async function getRecentSessions(): Promise<SessionWithWorkoutType[]> {
   const { data, error } = await supabase
     .from('sessions')
     .select(`
@@ -37,7 +42,7 @@ async function getRecentSessions() {
     return []
   }
 
-  return data
+  return data as SessionWithWorkoutType[]
 }
 
 async function createSession(workoutTypeId: string) {
