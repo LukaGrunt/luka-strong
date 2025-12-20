@@ -37,14 +37,15 @@ async function getSessionEntries(sessionId: string) {
   return data
 }
 
-export default async function HistoryDetailPage({ params }: { params: { id: string } }) {
-  const session = await getSession(params.id)
+export default async function HistoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const session = await getSession(id)
 
   if (!session) {
     notFound()
   }
 
-  const entries = await getSessionEntries(params.id)
+  const entries = await getSessionEntries(id)
 
   // Generate Strava text
   const stravaText = formatForStrava(

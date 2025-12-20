@@ -52,14 +52,15 @@ async function getExercises(workoutTypeId: string) {
   return data
 }
 
-export default async function FinishPage({ params }: { params: { id: string } }) {
-  const session = await getSession(params.id)
+export default async function FinishPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const session = await getSession(id)
 
   if (!session) {
     notFound()
   }
 
-  const entries = await getSessionEntries(params.id)
+  const entries = await getSessionEntries(id)
   const exercises = await getExercises(session.workout_type_id)
 
   // Generate Strava text

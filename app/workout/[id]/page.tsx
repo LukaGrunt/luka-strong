@@ -78,8 +78,9 @@ async function getSessionEntries(sessionId: string) {
   return data
 }
 
-export default async function SessionPage({ params }: { params: { id: string } }) {
-  const session = await getSession(params.id)
+export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const session = await getSession(id)
 
   if (!session) {
     notFound()
@@ -88,7 +89,7 @@ export default async function SessionPage({ params }: { params: { id: string } }
   const exercises = await getExercises(session.workout_type_id)
   const exerciseIds = exercises.map((e) => e.id)
   const previousEntries = await getPreviousEntries(exerciseIds)
-  const existingEntries = await getSessionEntries(params.id)
+  const existingEntries = await getSessionEntries(id)
 
   return (
     <SessionLogger
