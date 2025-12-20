@@ -1,9 +1,14 @@
 import { supabase, DEFAULT_USER_ID } from '@/lib/supabase'
 import Link from 'next/link'
+import type { Database } from '@/lib/database.types'
 
 export const dynamic = 'force-dynamic'
 
-async function getAllSessions() {
+type SessionWithWorkoutType = Database['public']['Tables']['sessions']['Row'] & {
+  workout_types?: { name: string } | null
+}
+
+async function getAllSessions(): Promise<SessionWithWorkoutType[]> {
   const { data, error } = await supabase
     .from('sessions')
     .select(`
@@ -21,7 +26,7 @@ async function getAllSessions() {
     return []
   }
 
-  return data
+  return data as SessionWithWorkoutType[]
 }
 
 export default async function HistoryPage() {
