@@ -1,10 +1,15 @@
 import { supabase, DEFAULT_USER_ID } from '@/lib/supabase'
 import SessionLogger from '@/components/SessionLogger'
 import { notFound } from 'next/navigation'
+import type { Database } from '@/lib/database.types'
 
 export const dynamic = 'force-dynamic'
 
-async function getSession(sessionId: string): Promise<any> {
+type SessionWithWorkoutType = Database['public']['Tables']['sessions']['Row'] & {
+  workout_types?: { name: string } | null
+}
+
+async function getSession(sessionId: string): Promise<SessionWithWorkoutType | null> {
   const { data, error } = await supabase
     .from('sessions')
     .select('*, workout_types(name)')
@@ -16,7 +21,7 @@ async function getSession(sessionId: string): Promise<any> {
     return null
   }
 
-  return data
+  return data as SessionWithWorkoutType
 }
 
 async function getExercises(workoutTypeId: string) {
