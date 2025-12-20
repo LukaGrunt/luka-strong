@@ -2,6 +2,7 @@ import { supabase, DEFAULT_USER_ID } from '@/lib/supabase'
 import WorkoutPicker from '@/components/WorkoutPicker'
 import { redirect } from 'next/navigation'
 import type { Database } from '@/lib/database.types'
+import Image from 'next/image'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,9 +73,17 @@ export default async function WorkoutPage() {
 
   return (
     <div className="min-h-screen bg-foundation p-4">
-      <header className="mb-8 animate-fade-in">
-        <h1 className="text-3xl font-bold text-textWhite tracking-tight mb-1">LUKA FORGE</h1>
-        <p className="text-muted">Select your workout</p>
+      <header className="mb-8 animate-fade-in flex items-center gap-4">
+        <Image
+          src="/favicon.png"
+          alt="LUKA FORGE"
+          width={48}
+          height={48}
+          className="w-12 h-12"
+        />
+        <div>
+          <p className="text-muted">Select your workout</p>
+        </div>
       </header>
 
       <WorkoutPicker
