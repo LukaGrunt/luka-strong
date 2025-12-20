@@ -65,7 +65,7 @@ export default async function FinishPage({ params }: { params: Promise<{ id: str
 
   // Generate Strava text
   const stravaText = formatForStrava(
-    session.workout_types?.name || 'Workout',
+    (session as any).workout_types?.name || 'Workout',
     entries as any,
     { includeNotes: false }
   )
@@ -79,7 +79,7 @@ export default async function FinishPage({ params }: { params: Promise<{ id: str
 
   return (
     <FinishScreen
-      session={session}
+      session={session as any}
       stravaText={stravaText}
       progressions={progressions}
     />

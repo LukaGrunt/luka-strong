@@ -49,10 +49,10 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
   // Generate Strava text
   const stravaText = formatForStrava(
-    session.workout_types?.name || 'Workout',
+    (session as any).workout_types?.name || 'Workout',
     entries as any,
     { includeNotes: false }
   )
 
-  return <HistoryDetail session={session} entries={entries as any} stravaText={stravaText} />
+  return <HistoryDetail session={session as any} entries={entries as any} stravaText={stravaText} />
 }
