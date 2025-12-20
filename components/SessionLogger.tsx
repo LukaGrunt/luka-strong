@@ -57,6 +57,8 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
   const [showAddExercise, setShowAddExercise] = useState(false)
   const [activeTimers, setActiveTimers] = useState<Map<string, number>>(new Map())
   const [timerIntervals, setTimerIntervals] = useState<Map<string, NodeJS.Timeout>>(new Map())
+  const [restTimer, setRestTimer] = useState<number | null>(null)
+  const [restInterval, setRestInterval] = useState<NodeJS.Timeout | null>(null)
 
   // Initialize entries with prefill logic
   useEffect(() => {
@@ -336,8 +338,42 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
   useEffect(() => {
     return () => {
       timerIntervals.forEach(interval => clearInterval(interval))
+      if (restInterval) clearInterval(restInterval)
     }
-  }, [timerIntervals])
+  }, [timerIntervals, restInterval])
+
+  const startRestTimer = useCallback((seconds: number) => {
+    // Clear existing rest timer if any
+    if (restInterval) {
+      clearInterval(restInterval)
+    }
+
+    // Set initial time
+    setRestTimer(seconds)
+
+    // Start countdown
+    const interval = setInterval(() => {
+      setRestTimer(prev => {
+        if (prev === null || prev <= 1) {
+          // Timer finished
+          clearInterval(interval)
+          setRestInterval(null)
+          return null
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    setRestInterval(interval)
+  }, [restInterval])
+
+  const stopRestTimer = useCallback(() => {
+    if (restInterval) {
+      clearInterval(restInterval)
+      setRestInterval(null)
+    }
+    setRestTimer(null)
+  }, [restInterval])
 
   const handleFinish = async () => {
     setIsSaving(true)
@@ -418,7 +454,7 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
   const progressPercent = totalExercises > 0 ? (completedCount / totalExercises) * 100 : 0
 
   return (
-    <div className="min-h-screen bg-foundation p-4 pb-24">
+    <div className="min-h-screen bg-foundation p-4 pb-48">
       {/* Header */}
       <header className="mb-6 sticky top-0 bg-foundation pt-4 pb-2 z-10">
         <div className="flex items-center justify-between mb-2">
@@ -679,8 +715,43 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
         </button>
       </div>
 
-      {/* Fixed bottom button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-foundation border-t border-primary/20 p-4">
+      {/* Fixed bottom section */}
+      <div className="fixed bottom-0 left-0 right-0 bg-foundation border-t border-primary/20 p-4 space-y-3">
+        {/* Rest Timer */}
+        <div className="bg-surface rounded-lg p-3 border border-primary/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-muted text-sm font-medium">Rest Timer</span>
+            {restTimer !== null && (
+              <button
+                onClick={stopRestTimer}
+                className="text-accent hover:text-accent/80 text-xs font-bold"
+              >
+                Stop
+              </button>
+            )}
+          </div>
+
+          {restTimer !== null ? (
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary mb-2">
+                {Math.floor(restTimer / 60)}:{(restTimer % 60).toString().padStart(2, '0')}
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-6 gap-2">
+              {[30, 60, 90, 120, 180, 240].map((seconds) => (
+                <button
+                  key={seconds}
+                  onClick={() => startRestTimer(seconds)}
+                  className="px-3 py-2 bg-foundation border border-primary/30 hover:border-primary text-primary rounded text-sm font-medium transition-colors"
+                >
+                  {seconds < 60 ? `${seconds}s` : `${seconds / 60}m`}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <button
           onClick={handleFinish}
           disabled={isSaving}
