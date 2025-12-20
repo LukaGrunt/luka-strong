@@ -11,12 +11,14 @@ type SessionWithWorkoutType = Database['public']['Tables']['sessions']['Row'] & 
 async function getAllSessions(): Promise<SessionWithWorkoutType[]> {
   const { data, error } = await supabase
     .from('sessions')
-    .select(`
+    .select(
+      `
       *,
       workout_types (
         name
       )
-    `)
+    `
+    )
     .eq('user_id', DEFAULT_USER_ID)
     .not('finished_at', 'is', null)
     .order('finished_at', { ascending: false })
@@ -26,7 +28,7 @@ async function getAllSessions(): Promise<SessionWithWorkoutType[]> {
     return []
   }
 
-  return data as SessionWithWorkoutType[]
+  return (data || []) as SessionWithWorkoutType[]
 }
 
 export default async function HistoryPage() {

@@ -39,7 +39,7 @@ async function getExercises(workoutTypeId: string) {
     return []
   }
 
-  return data
+  return (data || []) as Database['public']['Tables']['exercises']['Row'][]
 }
 
 async function getPreviousEntries(exerciseIds: string[]) {
@@ -59,8 +59,9 @@ async function getPreviousEntries(exerciseIds: string[]) {
   }
 
   // Get the most recent entry for each exercise
-  const latestByExercise = new Map()
-  for (const entry of data) {
+  const latestByExercise = new Map<string, Database['public']['Tables']['session_entries']['Row']>()
+  const entries = (data || []) as Database['public']['Tables']['session_entries']['Row'][]
+  for (const entry of entries) {
     if (!latestByExercise.has(entry.exercise_id)) {
       latestByExercise.set(entry.exercise_id, entry)
     }

@@ -20,7 +20,7 @@ async function getWorkoutTypes() {
     return []
   }
 
-  return data
+  return (data || []) as Database['public']['Tables']['workout_types']['Row'][]
 }
 
 async function getRecentSessions(): Promise<SessionWithWorkoutType[]> {
@@ -48,7 +48,7 @@ async function getRecentSessions(): Promise<SessionWithWorkoutType[]> {
 async function createSession(workoutTypeId: string) {
   'use server'
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('sessions')
     .insert({
       user_id: DEFAULT_USER_ID,
@@ -60,7 +60,7 @@ async function createSession(workoutTypeId: string) {
 
   if (error) {
     console.error('Error creating session:', error)
-    return null
+    return
   }
 
   redirect(`/workout/${data.id}`)

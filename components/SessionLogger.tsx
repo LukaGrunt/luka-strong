@@ -80,7 +80,7 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
       // Check if there's an existing entry for this session
       const existing = existingEntries.find((e) => e.exercise_id === exercise.id)
       if (existing) {
-        const hasSetData = existing.set_data && Array.isArray(existing.set_data)
+        const hasSetData = !!existing.set_data && Array.isArray(existing.set_data)
         return {
           exerciseId: exercise.id,
           weight: existing.weight,
@@ -100,7 +100,7 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
 
       // Otherwise prefill from previous entry or template
       const previous = previousEntries.find((e) => e.exercise_id === exercise.id)
-      const hasSetData = previous?.set_data && Array.isArray(previous.set_data)
+      const hasSetData = !!previous?.set_data && Array.isArray(previous.set_data)
 
       return {
         exerciseId: exercise.id,
@@ -472,8 +472,8 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
         })
       } else {
         // Delete existing entries and insert new ones
-        await supabase.from('session_entries').delete().eq('session_id', session.id)
-        await supabase.from('session_entries').insert(entriesToSave)
+        await (supabase as any).from('session_entries').delete().eq('session_id', session.id)
+        await (supabase as any).from('session_entries').insert(entriesToSave)
       }
 
       // Mark session as finished
@@ -488,7 +488,7 @@ export default function SessionLogger({ session, exercises, previousEntries, exi
           data: { id: session.id, ...finishData },
         })
       } else {
-        await supabase.from('sessions').update(finishData).eq('id', session.id)
+        await (supabase as any).from('sessions').update(finishData).eq('id', session.id)
       }
 
       // Navigate to finish screen
