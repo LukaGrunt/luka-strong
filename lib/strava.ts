@@ -21,8 +21,23 @@ export function formatForStrava(
 
   const completedEntries = entries.filter(e => e.completed)
 
+  // Debug log
+  console.log('Formatting Strava:', {
+    totalEntries: entries.length,
+    completed: completedEntries.length,
+    hasExercise: completedEntries.filter(e => e.exercise).length
+  })
+
+  if (completedEntries.length === 0) {
+    output += '(No exercises completed)'
+    return output.trim()
+  }
+
   for (const entry of completedEntries) {
-    if (!entry.exercise) continue
+    if (!entry.exercise) {
+      console.warn('Entry missing exercise:', entry.id)
+      continue
+    }
 
     const exercise = entry.exercise
     // Lowercase exercise name
