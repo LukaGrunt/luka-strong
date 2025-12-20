@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-async function getSession(sessionId: string) {
+async function getSession(sessionId: string): Promise<any> {
   const { data, error } = await supabase
     .from('sessions')
     .select('*, workout_types(name)')
@@ -49,10 +49,10 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
   // Generate Strava text
   const stravaText = formatForStrava(
-    (session as any).workout_types?.name || 'Workout',
+    session.workout_types?.name || 'Workout',
     entries as any,
     { includeNotes: false }
   )
 
-  return <HistoryDetail session={session as any} entries={entries as any} stravaText={stravaText} />
+  return <HistoryDetail session={session} entries={entries as any} stravaText={stravaText} />
 }

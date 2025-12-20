@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-async function getSession(sessionId: string) {
+async function getSession(sessionId: string): Promise<any> {
   const { data, error } = await supabase
     .from('sessions')
     .select('*, workout_types(name)')
@@ -65,7 +65,7 @@ export default async function FinishPage({ params }: { params: Promise<{ id: str
 
   // Generate Strava text
   const stravaText = formatForStrava(
-    (session as any).workout_types?.name || 'Workout',
+    session.workout_types?.name || 'Workout',
     entries as any,
     { includeNotes: false }
   )
@@ -79,7 +79,7 @@ export default async function FinishPage({ params }: { params: Promise<{ id: str
 
   return (
     <FinishScreen
-      session={session as any}
+      session={session}
       stravaText={stravaText}
       progressions={progressions}
     />

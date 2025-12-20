@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-async function getSession(sessionId: string) {
+async function getSession(sessionId: string): Promise<any> {
   const { data, error } = await supabase
     .from('sessions')
     .select('*, workout_types(name)')
