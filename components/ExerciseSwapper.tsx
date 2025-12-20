@@ -21,6 +21,11 @@ export default function ExerciseSwapper({
   onSwap,
 }: ExerciseSwapperProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [showCustomForm, setShowCustomForm] = useState(false)
+  const [customName, setCustomName] = useState('')
+  const [customWeight, setCustomWeight] = useState<number>(20)
+  const [customSets, setCustomSets] = useState<number>(3)
+  const [customReps, setCustomReps] = useState<number>(10)
 
   if (!isOpen) return null
 
@@ -35,6 +40,33 @@ export default function ExerciseSwapper({
   const handleSelect = (exercise: Exercise) => {
     onSwap(exercise)
     setSearchQuery('')
+    onClose()
+  }
+
+  const handleCustomSubmit = () => {
+    if (!customName.trim()) return
+
+    // Create a custom exercise object
+    const customExercise: Exercise = {
+      id: `custom-${Date.now()}-${customName.toLowerCase().replace(/\s+/g, '-')}`,
+      workout_type_id: exercises[0]?.workout_type_id || '',
+      name: customName,
+      sort_order: 999,
+      is_main: false,
+      unit: 'kg',
+      default_weight: customWeight,
+      default_sets: customSets,
+      default_reps: customReps,
+      show_by_default: false,
+    }
+
+    onSwap(customExercise)
+    setSearchQuery('')
+    setShowCustomForm(false)
+    setCustomName('')
+    setCustomWeight(20)
+    setCustomSets(3)
+    setCustomReps(10)
     onClose()
   }
 
@@ -73,40 +105,118 @@ export default function ExerciseSwapper({
           />
         </div>
 
-        {/* Exercise List */}
+        {/* Exercise List or Custom Form */}
         <div className="flex-1 overflow-y-auto p-4">
-          {availableExercises.length === 0 ? (
-            <p className="text-muted text-center py-8">No exercises found</p>
-          ) : (
-            <div className="space-y-2">
-              {availableExercises.map((exercise) => (
+          {showCustomForm ? (
+            // Custom Exercise Form
+            <div className="space-y-4">
+              <div>
+                <label className="block text-muted text-sm font-medium mb-2">Exercise Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Cable Crossover"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  className="w-full px-4 py-3 bg-foundation border-2 border-muted/30 rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary"
+                  autoFocus
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-muted text-sm font-medium mb-2">Weight (kg)</label>
+                  <input
+                    type="number"
+                    step="0.25"
+                    value={customWeight}
+                    onChange={(e) => setCustomWeight(parseFloat(e.target.value) || 0)}
+                    className="w-full px-4 py-3 bg-foundation border-2 border-muted/30 rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-muted text-sm font-medium mb-2">Sets</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={customSets}
+                    onChange={(e) => setCustomSets(parseInt(e.target.value) || 1)}
+                    className="w-full px-4 py-3 bg-foundation border-2 border-muted/30 rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-muted text-sm font-medium mb-2">Reps</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={customReps}
+                    onChange={(e) => setCustomReps(parseInt(e.target.value) || 1)}
+                    className="w-full px-4 py-3 bg-foundation border-2 border-muted/30 rounded-lg text-textWhite text-lg focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
                 <button
-                  key={exercise.id}
-                  onClick={() => handleSelect(exercise)}
-                  className="w-full p-4 bg-foundation rounded-lg border-2 border-muted/30 hover:border-primary transition-colors text-left group"
+                  onClick={() => setShowCustomForm(false)}
+                  className="flex-1 px-4 py-3 bg-surface border-2 border-muted/30 text-muted rounded-lg font-medium hover:border-muted/50 transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-bold text-textWhite group-hover:text-primary transition-colors">
-                      {exercise.name}
-                    </h3>
-                    {exercise.is_main && (
-                      <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs font-bold rounded-md uppercase shrink-0">
-                        Main
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-3 text-sm text-muted">
-                    {exercise.default_weight !== null && (
-                      <span>
-                        {exercise.default_weight}{exercise.unit}
-                      </span>
-                    )}
-                    <span>{exercise.default_sets} sets</span>
-                    <span>{exercise.default_reps} {exercise.unit === 'sec' ? 'sec' : 'reps'}</span>
-                  </div>
+                  Back
                 </button>
-              ))}
+                <button
+                  onClick={handleCustomSubmit}
+                  disabled={!customName.trim()}
+                  className="flex-1 px-4 py-3 bg-primary text-foundation rounded-lg font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Add Exercise
+                </button>
+              </div>
             </div>
+          ) : (
+            // Exercise List
+            <>
+              {availableExercises.length === 0 ? (
+                <p className="text-muted text-center py-8">No exercises found</p>
+              ) : (
+                <div className="space-y-2">
+                  {availableExercises.map((exercise) => (
+                    <button
+                      key={exercise.id}
+                      onClick={() => handleSelect(exercise)}
+                      className="w-full p-4 bg-foundation rounded-lg border-2 border-muted/30 hover:border-primary transition-colors text-left group"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className="font-bold text-textWhite group-hover:text-primary transition-colors">
+                          {exercise.name}
+                        </h3>
+                        {exercise.is_main && (
+                          <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs font-bold rounded-md uppercase shrink-0">
+                            Main
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-3 text-sm text-muted">
+                        {exercise.default_weight !== null && (
+                          <span>
+                            {exercise.default_weight}{exercise.unit}
+                          </span>
+                        )}
+                        <span>{exercise.default_sets} sets</span>
+                        <span>{exercise.default_reps} {exercise.unit === 'sec' ? 'sec' : 'reps'}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Add Custom Exercise Button */}
+              <button
+                onClick={() => setShowCustomForm(true)}
+                className="w-full mt-4 p-4 bg-surface border-2 border-dashed border-primary/30 hover:border-primary/50 text-primary rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <span className="text-xl">+</span>
+                Add Custom Exercise
+              </button>
+            </>
           )}
         </div>
       </div>
