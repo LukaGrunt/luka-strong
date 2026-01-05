@@ -2,6 +2,7 @@ import { supabase, DEFAULT_USER_ID } from '@/lib/supabase'
 import Link from 'next/link'
 import type { Database } from '@/lib/database.types'
 import Image from 'next/image'
+import ClearHistoryButton from '@/components/ClearHistoryButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,17 +38,20 @@ export default async function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-foundation p-4">
-      <header className="mb-8 animate-fade-in flex items-center gap-4">
-        <Image
-          src="/favicon.png"
-          alt="LUKA FORGE"
-          width={48}
-          height={48}
-          className="w-12 h-12"
-        />
-        <div>
-          <p className="text-muted">Workout History</p>
+      <header className="mb-8 animate-fade-in flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Image
+            src="/favicon.png"
+            alt="LUKA FORGE"
+            width={48}
+            height={48}
+            className="w-12 h-12"
+          />
+          <div>
+            <p className="text-muted">Workout History</p>
+          </div>
         </div>
+        {sessions.length > 0 && <ClearHistoryButton />}
       </header>
 
       <div className="max-w-2xl mx-auto">
