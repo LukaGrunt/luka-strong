@@ -54,9 +54,14 @@ export default function FullscreenTimer({
     }
   }, [isOpen, handleBackdropClick])
 
-  // Play sound when timer completes
+  // Play sound and vibrate when timer completes
   useEffect(() => {
     if (isOpen && seconds === 0) {
+      // Vibrate 3 times: 200ms vibrate, 100ms pause, repeat
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200, 100, 200])
+      }
+
       // Optional: Play completion sound
       // const audio = new Audio('/sounds/timer-complete.mp3')
       // audio.play().catch(() => {})
